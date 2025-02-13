@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Garantías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Estilos para el encabezado */
+        .header {
+            background: linear-gradient(135deg, #004aad, #007bff);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: white;
+            padding: 5px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .header img:hover {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .header h1 {
+            font-family: 'Roboto', sans-serif;
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Estilos para las pestañas */
+        .nav-tabs .nav-link {
+            color: #0056b3;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .tab-content {
+            background: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para los botones */
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            border-radius: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Encabezado -->
+<div class="header d-flex flex-column align-items-center">
+    <img src="/garantias/front/assets/logo.png" alt="Logo de la Empresa">
+    <h1>Gestión de Garantías</h1>
+    <p>Registra y busca garantías de manera rápida y sencilla</p>
+</div>
+
+<div class="container">
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs mb-4" id="tabMenu" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro" type="button" role="tab" aria-controls="registro" aria-selected="true">
+                <i class="bi bi-pencil-square"></i> Registrar Garantía
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="buscar-tab" data-bs-toggle="tab" data-bs-target="#buscar" type="button" role="tab" aria-controls="buscar" aria-selected="false">
+                <i class="bi bi-search"></i> Buscar Garantía
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content">
+        <!-- Tab Registrar Garantía -->
+        <div class="tab-pane fade show active" id="registro" role="tabpanel" aria-labelledby="registro-tab">
+            <h4 class="mb-4"><i class="bi bi-pencil-square"></i> Registrar Garantía</h4>
+            <!-- Formulario de Registro -->
+            <form action="guardar_garantia.php" method="POST" id="form-guardar-garantia">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="nombre_cliente" class="form-label">Nombre del Cliente</label>
+                        <input type="text" class="form-control" id="nombre_cliente" name="nombre_cliente" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="factura_id" class="form-label">Número de Factura</label>
+                        <input type="text" class="form-control" id="factura_id" name="factura_id" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="fecha_vencimiento" class="form-label">Fecha de Garantía</label>
+                        <input type="date" class="form-control" id="fecha_vencimiento" name="fecha_vencimiento" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="producto_id" class="form-label">Código del Producto</label>
+                        <input type="text" class="form-control" id="producto_id" name="producto_id[]" placeholder="Código del Producto" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="numero_serie" class="form-label">Número de Serie</label>
+                    <input type="text" class="form-control" id="numero_serie" name="numero_serie[]" placeholder="Escanea el número de serie" required>
+                </div>
+
+                <div id="productos-lista">
+                    <button type="button" class="btn btn-secondary" id="agregar-producto">Agregar otro producto</button>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Guardar Garantía</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab Buscar Garantía -->
+        <div class="tab-pane fade" id="buscar" role="tabpanel" aria-labelledby="buscar-tab">
+            <h4 class="mb-4"><i class="bi bi-search"></i> Buscar Garantía</h4>
+            <!-- Formulario de Búsqueda -->
+            <form action="buscar_garantia.php" method="POST" id="form-buscar-garantia">
+                <div class="mb-3">
+                    <label for="buscar_por" class="form-label">Buscar por</label>
+                    <select class="form-select" id="buscar_por" name="buscar_por" required>
+                        <option value="fecha">Fecha</option>
+                        <option value="cliente">Nombre del Cliente</option>
+                        <option value="factura">Número de Factura</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="campoBusquedaFecha">
+                    <label for="fecha_busqueda" class="form-label">Fecha</label>
+                    <input type="date" class="form-control" id="fecha_busqueda" name="fecha_busqueda">
+                </div>
+                <div class="mb-3" id="campoBusquedaCliente" style="display:none;">
+                    <label for="nombre_cliente_busqueda" class="form-label">Nombre del Cliente</label>
+                    <input type="text" class="form-control" id="nombre_cliente_busqueda" name="nombre_cliente_busqueda">
+                </div>
+                <div class="mb-3" id="campoBusquedaFactura" style="display:none;">
+                    <label for="factura_id_busqueda" class="form-label">Número de Factura</label>
+                    <input type="text" class="form-control" id="factura_id_busqueda" name="factura_id_busqueda">
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentProductoCount = 1;  // Comienza con un producto
+        const maxProductos = 5;  // Limitar el número máximo de productos
+
+        document.getElementById('agregar-producto').addEventListener('click', function () {
+            if (currentProductoCount < maxProductos) {
+                currentProductoCount++;
+                const productoContainer = document.createElement('div');
+                productoContainer.className = 'producto-item';
+                productoContainer.innerHTML = `
+                    <label for="producto_id_${currentProductoCount}">Código del Producto</label>
+                    <input type="text" class="form-control mb-2" name="producto_id[]" id="producto_id_${currentProductoCount}" placeholder="Ingresa el código del producto" required>
+
+                    <div id="numeros-serie-${currentProductoCount}" class="numeros-serie">
+                        <label for="numero_serie_${currentProductoCount}">Número de Serie</label>
+                        <input type="text" class="form-control mb-2" name="numero_serie_${currentProductoCount}[]" id="numero_serie_${currentProductoCount}" placeholder="Escanea el número de serie" required>
+                    </div>
+                `;
+                document.getElementById('productos-lista').appendChild(productoContainer);
+            } else {
+                alert('Se ha alcanzado el número máximo de productos.');
+            }
+        });
+
+        // Agregar más números de serie cuando se escanea un QR
+        document.getElementById('productos-lista').addEventListener('input', function (e) {
+            const regex = /numero_serie_(\d+)/;
+            const match = e.target.name.match(regex);
+
+            if (match) {
+                const productoId = match[1];
+                if (e.target.value.trim() !== '') {
+                    // Crear un nuevo campo para número de serie
+                    const lastInput = document.querySelector(`#numeros-serie-${productoId} input:last-child`);
+                    if (lastInput && lastInput.value.trim() !== '') {
+                        const newSerieInput = document.createElement('input');
+                        newSerieInput.type = 'text';
+                        newSerieInput.className = 'form-control mb-2';
+                        newSerieInput.name = `numero_serie_${productoId}[]`;
+                        newSerieInput.placeholder = 'Escanea otro número de serie';
+                        newSerieInput.required = true;
+                        document.getElementById(`numeros-serie-${productoId}`).appendChild(newSerieInput);
+                    }
+                }
+            }
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+
+
+

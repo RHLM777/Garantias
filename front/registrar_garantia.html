@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Garantías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 850px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #004aad, #007bff);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: white;
+            padding: 5px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .header img:hover {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .qr-input {
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Estilo para los mensajes de error */
+        .alert-danger {
+            display: none;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <img src="/garantias/front/assets/logo.png" alt="Logo de la Empresa">
+        <h2>Gestión de Garantías</h2>
+        <p>Tecnología a tu alcance</p>
+    </div>
+
+    <!-- Mensaje de error dinámico -->
+    <div id="mensaje-error" class="alert alert-danger text-center"></div>
+
+    <form action="guardar_garantia.php" method="POST" id="form-guardar-garantia">
+        <div class="grid-container">
+            <div>
+                <label class="form-label">Nombre del Cliente</label>
+                <input type="text" class="form-control" id="nombre_cliente" name="nombre_cliente" required>
+            </div>
+            <div>
+                <label class="form-label">Número de Factura</label>
+                <input type="text" class="form-control" id="factura_id" name="factura_id" required>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div>
+                <label class="form-label">Fecha de Garantía</label>
+                <input type="date" class="form-control" id="fecha_vencimiento" name="fecha_vencimiento" required>
+            </div>
+            <div>
+                <label class="form-label">Código del Producto</label>
+                <input type="text" class="form-control" id="codigo_producto" name="codigo_producto" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Cantidad de Garantías</label>
+            <input type="number" class="form-control" id="cantidad_garantias" name="cantidad_garantias" required min="1" max="60" value="1">
+        </div>
+
+        <button type="button" class="btn btn-secondary w-100" id="crear-campos">Crear Campos</button>
+
+        <div id="numeros-serie" class="grid-container mt-3">
+            <!-- Campos de códigos QR generados dinámicamente -->
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <select class="form-control" name="estado" id="estado" required>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+            </select>
+        </div>
+
+        <div class="btn-group mt-3">
+            <button type="submit" class="btn btn-primary w-100" id="guardar-garantia">Guardar Garantía</button>
+            <a href="buscar.html" class="btn btn-info w-100 mt-2">🔍 Ir a Buscar Garantías</a>
+        </div>
+        
+
+<script>
+    let maxProductCount = 1;
+
+    document.getElementById('cantidad_garantias').addEventListener('change', function() {
+        maxProductCount = parseInt(this.value);
+        if (maxProductCount > 60) {
+            maxProductCount = 60;
+            this.value = 60;
+        }
+    });
+
+    document.getElementById('crear-campos').addEventListener('click', function() {
+        const container = document.getElementById('numeros-serie');
+        container.innerHTML = '';
+
+        for (let i = 0; i < maxProductCount; i++) {
+            let inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.classList.add('form-control', 'qr-input', 'mb-2');
+            inputField.name = 'producto_id[]';
+            inputField.placeholder = `Escanea el número de serie ${i + 1}`;
+            container.appendChild(inputField);
+        }
+
+        if (maxProductCount > 0) {
+            container.querySelector('input').focus();
+        }
+    });
+
+    document.getElementById('numeros-serie').addEventListener('keypress', function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            let inputs = document.querySelectorAll('input[name="producto_id[]"]');
+            let index = Array.from(inputs).indexOf(event.target);
+
+            if (index !== -1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        }
+    });
+
+    document.getElementById('form-guardar-garantia').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const mensajeError = document.getElementById('mensaje-error');
+        mensajeError.style.display = "none";
+
+        const productInputs = document.querySelectorAll('input[name="producto_id[]"]');
+        let emptyField = false;
+        productInputs.forEach(input => {
+            if (input.value.trim() === '') {
+                emptyField = true;
+            }
+        });
+
+        if (emptyField) {
+            mensajeError.textContent = "Por favor, completa todos los campos antes de guardar.";
+            mensajeError.style.display = "block";
+            return;
+        }
+
+        this.submit();
+    });
+
+    document.getElementById('numeros-serie').addEventListener('input', function(event) {
+        const mensajeError = document.getElementById('mensaje-error');
+        mensajeError.style.display = "none";
+    });
+    
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
